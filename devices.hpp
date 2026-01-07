@@ -12,9 +12,10 @@
 #include <unistd.h> // for close
 #include <linux/input.h> // for struct input_event, event codes
  
-constexpr const char* KEYBOARD_DEVICE_PATH = "/dev/input/event16";
+constexpr const char* KEYBOARD_DEVICE_PATH = "/dev/input/event11";
 constexpr const char* MOUSE_DEVICE_PATH = "/dev/input/event10";
 constexpr const int MAX_EVENTS = 15;
+
 
 
 class InputDevice
@@ -37,6 +38,35 @@ class InputDevice
         const char* path; 
 };
 
+struct Keyboard : public InputDevice
+{
+    Keyboard(const char* keyboardDevicePath = KEYBOARD_DEVICE_PATH)
+    {
+        m_keyboardListener = open(keyboardDevicePath, O_RDONLY, 0);
+        m_fd = m_keyboardListener;
+        if (m_keyboardListener < 0)
+        {
+            std::cerr << "Unable to instantiate keyboard file descriptor: " << errno << '\n';
+        }
+    }
+
+    void handleEvent() override
+    {
+        std::cout << "keyboard event handler \n";
+        ssize_t keyboardBytesRead = read(this->m_fd, &m_inputEvent, sizeof(m_inputEvent));
+        if (keyboardBytesRead < 0)
+        {
+            std::cerr << "Error while fetching keyboard data: " << errno << '\n';
+        }
+        std::cout << "Event type: " << m_inputEvent.type << std::endl;
+        std::cout << "Code: " << m_inputEvent.code << std::endl;
+        std::cout << "Value: " << m_inputEvent.value << std::endl;
+    }
+
+    private:
+        int m_keyboardListener {}; 
+        struct input_event m_inputEvent {};
+};
 
 struct Mouse : public InputDevice 
 {
@@ -56,7 +86,6 @@ struct Mouse : public InputDevice
         if (mouseBytesRead < 0)
         {
             std::cerr << "Error while fetching mouse data: " << errno << '\n';
-            exit(1);
         }
 
         if (m_inputEvent.type == EV_REL)

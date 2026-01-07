@@ -1,5 +1,4 @@
-#include "mouse.hpp"
-#include <iostream>
+#include "devices.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -12,9 +11,11 @@ int main(int argc, char* argv[])
     
     Listener listener;
     Mouse mouse(MOUSE_DEVICE_PATH);
+    Keyboard keyboard(KEYBOARD_DEVICE_PATH);
 
     listener.bind(mouse);
-    
+    listener.bind(keyboard);
+
     listener.run();
 }
 
