@@ -16,35 +16,6 @@
  
 constexpr const int MAX_EVENTS = 15;
 
-std::string findPathByFile(const std::string& target)
-{
-    std::ifstream file("/proc/bus/input/devices");
-    std::string line, path; 
-    bool finded = false;
-
-    while (std::getline(file, line))
-    {
-        if (line.find("N: Name=") != std::string::npos && line.find(target) != std::string::npos)
-        { finded = true; }
-
-        if (finded && line.find("H: Handlers= ") != std::string::npos)
-        {
-            std::stringstream ss(line);
-            std::string word;
-            while (ss >> word)
-            {
-                if (word.find("event") != std::string::npos)
-                {   
-                    std::string basePath = "/dev/input/";
-                    return basePath + word; 
-                }
-            }
-        }
-        if (line.empty()) { finded = false; }
-    }
-    return "";
-}
-
 class InputDevice
 {
     public:
@@ -80,17 +51,54 @@ struct Keyboard : public InputDevice
 
     void handleEvent() override
     {
-        std::cout << "keyboard event handler \n";
         ssize_t keyboardBytesRead = read(this->m_fd, &m_inputEvent, sizeof(m_inputEvent));
         if (keyboardBytesRead < 0)
         {
             std::cerr << "Error while fetching keyboard data: " << errno << '\n';
             exit(1);
         }
-        std::cout << "Event type: " << m_inputEvent.type << std::endl;
-        std::cout << "Code: " << m_inputEvent.code << std::endl;
-        std::cout << "Value: " << m_inputEvent.value << std::endl;
+        // EV_KEY for pressed keys 
+        if (m_inputEvent.type == EV_KEY) 
+        {
+            
+            // m_inputEvent.value == 1 (Pressed)
+            // m_inputEvent.value == 0 (Released)
+            // m_inputEvent.value == 2 (Autorepeat)
+            std::string state = (m_inputEvent.value == 1) ? "PRESSED" : 
+                                (m_inputEvent.value == 0) ? "RELEASED" : "REPEATING";
+
+            switch (m_inputEvent.code) 
+            {
+                case KEY_W: std::cout << "[KBD] W " << state << std::endl; break;
+                case KEY_A: std::cout << "[KBD] A " << state << std::endl; break;
+                case KEY_S: std::cout << "[KBD] S " << state << std::endl; break;
+                case KEY_D: std::cout << "[KBD] D " << state << std::endl; break;
+                
+                case KEY_UP:    std::cout << "[KBD] UP ARROW " << state << std::endl; break;
+                case KEY_DOWN:  std::cout << "[KBD] DOWN ARROW " << state << std::endl; break;
+                case KEY_LEFT:  std::cout << "[KBD] LEFT ARROW " << state << std::endl; break;
+                case KEY_RIGHT: std::cout << "[KBD] RIGHT ARROW " << state << std::endl; break;
+
+                case KEY_SPACE: std::cout << "[KBD] SPACE " << state << std::endl; break;
+                case KEY_ENTER: std::cout << "[KBD] ENTER " << state << std::endl; break;
+                case KEY_ESC:   std::cout << "[KBD] ESCAPE " << state << std::endl; break;
+                case KEY_LEFTSHIFT: std::cout << "[KBD] LEFT SHIFT " << state << std::endl; break;
+                case KEY_CAPSLOCK:  std::cout << "[KBD] CAPS LOCK " << state << std::endl; break;
+                case KEY_BACKSPACE: std::cout << "[KBD] BACKSPACE " << state << std::endl; break;
+                case KEY_TAB:       std::cout << "[KBD] TAB " << state << std::endl; break;
+
+                default:
+                    // Caso queira ver o código de teclas não mapeadas
+                    if (m_inputEvent.value == 1) 
+                    {
+                        std::cout << "[KBD] Key " << m_inputEvent.code << " " << state << std::endl;
+                    }
+                    break;
+            }
+        }
     }
+
+
 
     private:
         int m_keyboardListener {}; 
