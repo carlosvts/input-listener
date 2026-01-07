@@ -1,4 +1,4 @@
-# Linux Input Multiplexer (Epoll-based)
+# Linux Input Multiplexer
 
 A high-performance asynchronous input listener developed in C++ using the Linux `epoll` API.
 
@@ -83,4 +83,5 @@ Key resources used for understanding the Linux Kernel API, I/O multiplexing, and
 --- 
 ## Reminder
 This project was developed for educational purposes to master Linux system calls, file descriptors, and low-level memory management. While higher-level libraries (like SDL or Raylib [or SFML at cpp) abstract these details (use one them or other great library), the goal here was to "suffer" through the manual implementation to understand how data flows from the hardware to the application.
+
 
